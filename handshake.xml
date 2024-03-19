@@ -1,0 +1,46 @@
+<workflowTrace>
+    <Send>
+        <actionOptions/>
+        <messages>
+            <ClientHello>
+                <extensions>
+                    <ECPointFormat/>
+                    <EllipticCurves/>
+                    <SignatureAndHashAlgorithmsExtension/>
+                    <RenegotiationInfoExtension/>
+                </extensions>
+            </ClientHello>
+        </messages>
+    </Send>
+    <Receive>
+        <actionOptions/>
+        <expectedMessages>
+            <ServerHello>
+                <extensions>
+                    <ECPointFormat/>
+                    <RenegotiationInfoExtension/>
+                </extensions>
+                <autoSetHelloRetryModeInKeyShare>true</autoSetHelloRetryModeInKeyShare>
+            </ServerHello>
+            <Certificate/>
+            <ECDHEServerKeyExchange/>
+            <ServerHelloDone/>
+        </expectedMessages>
+    </Receive>
+    <Send>
+        <actionOptions/>
+        <messages>
+            <ECDHClientKeyExchange/>
+            <ChangeCipherSpec/>
+            <Finished/>
+        </messages>
+    </Send>
+    <Receive>
+        <actionOptions/>
+        <expectedMessages>
+            <ChangeCipherSpec/>
+            <Finished/>
+        </expectedMessages>
+    </Receive>
+</workflowTrace>
+
