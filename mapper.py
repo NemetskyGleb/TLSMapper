@@ -7,86 +7,41 @@ def prettify(elem):
     reparsed = minidom.parseString(rough_string)
     return reparsed.toprettyxml(indent="  ")
 
-def create_xml_for_state(state):
-    workflowTrace = Element('workflowTrace')
+class WorkflowBuilder:
+    def __init__(self):
+        self.workflowTrace = Element('workflowTrace')
 
-    send = SubElement(workflowTrace, 'Send')
-    actionOptions = SubElement(send, 'actionOptions')
-    messages = SubElement(send, 'messages')
+    def add_transition(self, send_state, receive_state):
+        send = SubElement(self.workflowTrace, 'Send')
+        actionOptions = SubElement(send, 'actionOptions')
+        messages = SubElement(send, 'messages')
 
-    if state == 'CLIENT_HELLO':
-        clientHello = SubElement(messages, 'ClientHello')
-        extensions = SubElement(clientHello, 'extensions')
-        SubElement(extensions, 'ECPointFormat')
-        SubElement(extensions, 'EllipticCurves')
-        SubElement(extensions, 'SignatureAndHashAlgorithmsExtension')
-        SubElement(extensions, 'RenegotiationInfoExtension')
+        if send_state == 'CLIENT_HELLO':
+            clientHello = SubElement(messages, 'ClientHello')
+            extensions = SubElement(clientHello, 'extensions')
+            SubElement(extensions, 'ECPointFormat')
+            SubElement(extensions, 'EllipticCurves')
+            SubElement(extensions, 'SignatureAndHashAlgorithmsExtension')
+            SubElement(extensions, 'RenegotiationInfoExtension')
 
-    elif state == 'SERVER_HELLO':
-        serverHello = SubElement(messages, 'ServerHello')
-        extensions = SubElement(serverHello, 'extensions')
-        SubElement(extensions, 'ECPointFormat')
-        SubElement(extensions, 'RenegotiationInfoExtension')
-        SubElement(serverHello, 'autoSetHelloRetryModeInKeyShare').text = 'true'
+        receive = SubElement(self.workflowTrace, 'Receive')
+        actionOptions = SubElement(receive, 'actionOptions')
+        expectedMessages = SubElement(receive, 'expectedMessages')
 
-    elif state == 'CERTIFICATE':
-        SubElement(messages, 'Certificate')
+        if receive_state == 'SERVER_HELLO':
+            serverHello = SubElement(expectedMessages, 'ServerHello')
+            extensions = SubElement(serverHello, 'extensions')
+            SubElement(extensions, 'ECPointFormat')
+            SubElement(extensions, 'RenegotiationInfoExtension')
+            SubElement(serverHello, 'autoSetHelloRetryModeInKeyShare').text = 'true'
+            SubElement(expectedMessages, 'Certificate')
+            SubElement(expectedMessages, 'ECDHEServerKeyExchange')
+            SubElement(expectedMessages, 'ServerHelloDone')
 
-    elif state == 'SERVER_HELLO_DONE':
-        SubElement(messages, 'ServerHelloDone')
+    def build(self):
+        return prettify(self.workflowTrace)
 
-    elif state == 'CLIENT_KEY_EXCHANGE':
-        SubElement(messages, 'ECDHClientKeyExchange')
-
-    elif state == 'CHANGE_CIPHER_SPEC':
-        SubElement(messages, 'ChangeCipherSpec')
-
-    elif state == 'FINISHED':
-        SubElement(messages, 'Finished')
-
-    elif state == 'ERROR':
-        SubElement(messages, 'Error')
-
-    receive = SubElement(workflowTrace, 'Receive')
-    actionOptions = SubElement(receive, 'actionOptions')
-    expectedMessages = SubElement(receive, 'expectedMessages')
-
-    if state == 'CLIENT_HELLO':
-        clientHello = SubElement(expectedMessages, 'ClientHello')
-        extensions = SubElement(clientHello, 'extensions')
-        SubElement(extensions, 'ECPointFormat')
-        SubElement(extensions, 'RenegotiationInfoExtension')
-
-    elif state == 'SERVER_HELLO':
-        serverHello = SubElement(expectedMessages, 'ServerHello')
-        extensions = SubElement(serverHello, 'extensions')
-        SubElement(extensions, 'ECPointFormat')
-        SubElement(extensions, 'RenegotiationInfoExtension')
-        SubElement(serverHello, 'autoSetHelloRetryModeInKeyShare').text = 'true'
-
-    elif state == 'CERTIFICATE':
-        SubElement(expectedMessages, 'Certificate')
-
-    elif state == 'SERVER_HELLO_DONE':
-        SubElement(expectedMessages, 'ServerHelloDone')
-
-    elif state == 'CLIENT_KEY_EXCHANGE':
-        SubElement(expectedMessages, 'ECDHClientKeyExchange')
-
-    elif state == 'CHANGE_CIPHER_SPEC':
-        SubElement(expectedMessages, 'ChangeCipherSpec')
-
-    elif state == 'FINISHED':
-        SubElement(expectedMessages, 'Finished')
-
-    elif state == 'ERROR':
-        SubElement(expectedMessages, 'Error')
-
-    return prettify(workflowTrace)
-
-states = ['CLIENT_HELLO', 'SERVER_HELLO', 'CERTIFICATE', 'SERVER_HELLO_DONE', 'CLIENT_KEY_EXCHANGE', 'CHANGE_CIPHER_SPEC', 'FINISHED', 'ERROR']
-
-for state in states:
-    print(f"XML for {state} state:")
-    print(create_xml_for_state(state))
-    print("\\n")
+# Example usage:
+builder = WorkflowBuilder()
+builder.add_transition('CLIENT_HELLO', 'SERVER_HELLO')
+print(builder.build())
